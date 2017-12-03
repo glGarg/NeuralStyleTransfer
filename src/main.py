@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import os
 import tensorflow as tf
@@ -5,6 +6,7 @@ import vgg
 import utils
 
 assets_dir = "../assets"
+output_dir = "../output"
 
 def get_content_cost(C, G):
     return tf.reduce_sum(tf.square(G - C)) / 2
@@ -18,7 +20,7 @@ def get_style_cost(S, G):
     return tf.reduce_sum(tf.square(gram_G - gram_S)) * 1.0 / (4.0 * shape * shape)
 
 def main(num_iter, use_optimizer, weights_path, content_image_path,
-         style_image_path):
+         style_image_path, verbose=False):
     gen = np.float32(utils.normalize_image(np.reshape(utils.create_noise_image(), [1, 224, 224, 3])))
     content = np.float32(utils.normalize_image(np.reshape(utils.open_image(content_image_path),
                                                     [1, 224, 224, 3])))
@@ -56,14 +58,15 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
                                     style_placeholder: style})
                 print(c)
 
-                if i % 15 == 0:
+                if verbose and i % 15 == 0:
                     utils.show_image(sess.run(gen_image)[0])
         else:
             def loss_callback(c, g, content_cost, style_cost):
-                loss_callback.iter += 1
-                print(content_cost, style_cost)
-                if loss_callback.iter % 15 == 0:
+                if verbose and loss_callback.iter % 15 == 0:
                     utils.show_image(g[0])
+
+                print(content_cost, style_cost)
+                loss_callback.iter += 1
 
             loss_callback.iter = 0
             optimizer = tf.contrib.opt.ScipyOptimizerInterface(cost, method='L-BFGS-B', options={'maxiter': num_iter})
@@ -74,11 +77,24 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
                                fetches=[cost, gen_image, content_cost, style_cost],
                                loss_callback=loss_callback)
 
-        utils.show_image(sess.run(gen_image)[0])
+        output = sess.run(gen_image)[0]
+        if verbose:
+            utils.show_image(output)
+
+        utils.save_image(os.path.join(output_dir, "output.jpg"), output)
 
 if __name__ == "__main__":
-    main(num_iter=250,
-         use_optimizer='lbfgs',
-         weights_path=os.path.join(assets_dir, "model/imagenet-vgg-verydeep-19.mat"),
-         content_image_path=os.path.join(assets_dir, "images/content/1.jpg"),
-         style_image_path=os.path.join(assets_dir, "images/style/1.jpg"))
+    parser = argparse.ArgumentParser(description="Neural Style Transfer")
+    parser.add_argument("-content_image", type=str)
+    parser.add_argument("-style_image", type=str)
+    parser.add_argument("-num_iter", type=int, default=200)
+    parser.add_argument("-optimizer", type=str, default="adam")
+    parser.add_argument("-v", "--verbose", nargs='?', default=False)
+    args = parser.parse_args()
+    weights_file = "model/imagenet-vgg-verydeep-19.mat"
+    main(num_iter=args.num_iter,
+         use_optimizer=args.optimizer,
+         weights_path=os.path.join(assets_dir, weights_file),
+         content_image_path=args.content_image,
+         style_image_path=args.style_image,
+         verbose=args.verbose)
