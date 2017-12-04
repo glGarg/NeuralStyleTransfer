@@ -21,20 +21,21 @@ def get_style_cost(S, G):
 
 def main(num_iter, use_optimizer, weights_path, content_image_path,
          style_image_path, verbose=False):
-    gen = np.float32(utils.normalize_image(np.reshape(utils.create_noise_image(), [1, 224, 224, 3])))
     content = np.float32(utils.normalize_image(np.reshape(utils.open_image(content_image_path),
-                                                    [1, 224, 224, 3])))
+                                                          [1, 224, 224, 3])))
     style = np.float32(utils.normalize_image(np.reshape(utils.open_image(style_image_path),
-                                                  [1, 224, 224, 3])))
+                                                        [1, 224, 224, 3])))
+    gen = np.float32(utils.normalize_image(np.reshape(utils.create_noise_image(), [1, 224, 224, 3])))
     gen_image = tf.Variable(gen, trainable=True, dtype=tf.float32)
     content_placeholder = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
     style_placeholder = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
+
     vgg_gen = vgg.VGG(weights_path)
     modelC = vgg_gen.create_model(content_placeholder, scope="content")
     modelS = vgg_gen.create_model(style_placeholder, scope="style")
     modelG = vgg_gen.create_model(gen_image, scope="gen")
     with tf.Session() as sess:
-        alpha = tf.constant(0.5, dtype=tf.float32)
+        alpha = tf.constant(1.0, dtype=tf.float32)
         beta = tf.constant(1.0, dtype=tf.float32)
         content_cost = get_content_cost(modelC["conv4_2"], modelG["conv4_2"])
         style_cost = get_style_cost(modelS["conv4_2"], modelG["conv4_2"])
@@ -58,12 +59,12 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
                                     style_placeholder: style})
                 print(c)
 
-                if verbose and i % 15 == 0:
-                    utils.show_image(sess.run(gen_image)[0])
+                if verbose and i % 50 == 0:
+                    utils.show_image(utils.restore_image(sess.run(gen_image)[0]))
         else:
             def loss_callback(c, g, content_cost, style_cost):
-                if verbose and loss_callback.iter % 15 == 0:
-                    utils.show_image(g[0])
+                if verbose and loss_callback.iter % 50 == 0:
+                    utils.show_image(utils.restore_image(g[0]))
 
                 print(content_cost, style_cost)
                 loss_callback.iter += 1
@@ -77,7 +78,7 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
                                fetches=[cost, gen_image, content_cost, style_cost],
                                loss_callback=loss_callback)
 
-        output = sess.run(gen_image)[0]
+        output = utils.restore_image(sess.run(gen_image)[0])
         if verbose:
             utils.show_image(output)
 
@@ -87,9 +88,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Neural Style Transfer")
     parser.add_argument("-content_image", type=str)
     parser.add_argument("-style_image", type=str)
-    parser.add_argument("-num_iter", type=int, default=200)
+    parser.add_argument("-num_iter", type=int, default=500)
     parser.add_argument("-optimizer", type=str, default="adam")
-    parser.add_argument("-v", "--verbose", nargs='?', default=False)
+    parser.add_argument("-v", "--verbose", action='store_true')
     args = parser.parse_args()
     weights_file = "model/imagenet-vgg-verydeep-19.mat"
     main(num_iter=args.num_iter,
