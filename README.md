@@ -7,7 +7,7 @@
 * `-num_iter`: number of iterations to run on the images (Optional)
 * `-v`/`--verbose`: shows the generated image after every n iterations (Optional)
 
-![Screenshot](https://i.imgur.com/lsVvkhE.jpg "Example")
+<img src="https://i.imgur.com/lsVvkhE.jpg" height="450" width="400"><img src="https://i.imgur.com/fmQyZFG.jpg=" height="450" width="400">
 
 (Left: style, Right: content, Bottom: result)
 
