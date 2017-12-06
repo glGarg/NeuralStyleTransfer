@@ -37,9 +37,11 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
     with tf.Session() as sess:
         alpha = tf.constant(1.0, dtype=tf.float32)
         beta = tf.constant(1.0, dtype=tf.float32)
+        gamma = tf.constant(1.0, dtype=tf.float32)
         content_cost = get_content_cost(modelC["conv4_2"], modelG["conv4_2"])
         style_cost = get_style_cost(modelS["conv4_2"], modelG["conv4_2"])
-        cost = tf.add(alpha * content_cost, beta * style_cost)
+        total_variation_cost = tf.image.total_variation(gen)
+        cost = tf.add(tf.add(alpha * content_cost, beta * style_cost), gamma * total_variation_cost)
         if use_optimizer == 'adam':
             learning_rate = 1.0
             optimizer = tf.train.AdamOptimizer(learning_rate)
@@ -62,11 +64,11 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
                 if verbose and i % 50 == 0:
                     utils.show_image(utils.restore_image(sess.run(gen_image)[0]))
         else:
-            def loss_callback(c, g, content_cost, style_cost):
+            def loss_callback(c, g, content_cost, style_cost, total_variation_cost):
                 if verbose and loss_callback.iter % 50 == 0:
                     utils.show_image(utils.restore_image(g[0]))
 
-                print(content_cost, style_cost)
+                print(content_cost, style_cost, total_variation_cost)
                 loss_callback.iter += 1
 
             loss_callback.iter = 0
@@ -75,7 +77,7 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
             sess.run(init)
             optimizer.minimize(sess, feed_dict={content_placeholder: content,
                                                 style_placeholder: style},
-                               fetches=[cost, gen_image, content_cost, style_cost],
+                               fetches=[cost, gen_image, content_cost, style_cost, total_variation_cost],
                                loss_callback=loss_callback)
 
         output = utils.restore_image(sess.run(gen_image)[0])
