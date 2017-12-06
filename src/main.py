@@ -40,8 +40,9 @@ def main(num_iter, use_optimizer, weights_path, content_image_path,
         gamma = tf.constant(1.0, dtype=tf.float32)
         content_cost = get_content_cost(modelC["conv4_2"], modelG["conv4_2"])
         style_cost = get_style_cost(modelS["conv4_2"], modelG["conv4_2"])
-        total_variation_cost = tf.image.total_variation(gen)
-        cost = tf.add(tf.add(alpha * content_cost, beta * style_cost), gamma * total_variation_cost)
+        total_variation_cost = tf.reduce_sum(tf.image.total_variation(gen_image))
+        cost = tf.add(tf.add(alpha * content_cost, beta * style_cost),
+                      gamma * total_variation_cost)
         if use_optimizer == 'adam':
             learning_rate = 1.0
             optimizer = tf.train.AdamOptimizer(learning_rate)
