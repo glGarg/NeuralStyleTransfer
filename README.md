@@ -11,4 +11,4 @@
 
 (Left: style, Right: content, Bottom: result)
 
-#### ToDo: total variation loss for smoother results, weighted layers cost, more tests :construction:
+#### ToDo: weighted layers cost, support for gif images :construction:
