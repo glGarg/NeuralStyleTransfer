@@ -11,5 +11,3 @@
 <img src="https://i.imgur.com/lsVvkhE.jpg" height="450" width="400"><img src="https://i.imgur.com/fmQyZFG.jpg=" height="450" width="400">
 
 (Left: style, Right: content, Bottom: result)
-
-#### ToDo: weighted layers cost, support for gif images :construction:
