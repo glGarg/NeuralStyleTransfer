@@ -1,7 +1,7 @@
 # Neural Style Transfer :art:
-### An implementation of [Neural Style Transfer](https://arxiv.org/abs/1508.06576) by Leon A. Gatys, Alexander S. Ecker, and Matthias Bethge.
+### An implementation of [Neural Style Transfer](https://arxiv.org/abs/1508.06576) (Gatys et al., 2015)
 ### Usage:
-#### A pre-trained model can be downloaded from [here](http://www.vlfeat.org/matconvnet/pretrained/).
+#### Pre-trained VGG model can be downloaded from [here](http://www.vlfeat.org/matconvnet/pretrained/).
 #### Run `main.py` with following arguments:
 * `-content_image`: path to content image (Required)
 * `-style_image`: path to style image (Required)
